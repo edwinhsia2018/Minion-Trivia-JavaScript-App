@@ -9,25 +9,26 @@ $(document).ready(function() {
     var skippedQuestions = 0;
     var questionId = 0;
 
-    //Store answers
-    $('button').on('click', function(){
-        var userAnswer = $(this).text();
-        checkAnswer ();
-    });
-    
     //timers
-    var count=15;
-    var intervalId;
-    function clock() {
-        intervalId = setInterval(timer, 1000);
-    }
-    function timer (){
-        count--;
-        $("#show-time").html("Time Remaining: " + count);
-        if (count <= 0) {
-            skippedQuestions++;
-            clearInterval(intervalId);
-            nextQuestion();
+    var timer = {
+        time: 16,
+        reset: function () {
+            this.time = 15;
+            $("#show-time").html("Time Remaining: " + this.time);
+        },
+        start: function () {
+            counter = setInterval(timer.count, 1000);
+        },
+        stop: function () {
+            clearInterval(counter);
+        },
+        count: function (){
+            timer.time--;
+            $("#show-time").html("Time Remaining: " + timer.time);
+            if (timer.time <= 0) {
+                skippedQuestions++;
+                nextQuestion ();
+        }
         }
     }
 
@@ -40,7 +41,18 @@ $(document).ready(function() {
         $("#answer2").html(answersArr[questionId][1]);
         $("#answer3").html(answersArr[questionId][2]);
         $("#answer4").html(answersArr[questionId][3]);
-        clock ();
+        timer.start();
+        $(document).on("click", ".btnanswer", function() {
+            var userAnswer = $(this).text().trim();
+            if (userAnswer == rightAns[questionId]) {
+                correctAns++;
+                nextQuestion();
+            }
+            else {
+                wrongAns++;
+                nextQuestion();
+            }
+            });
         $("#game-start").html("");
     })
 
@@ -48,28 +60,26 @@ $(document).ready(function() {
     function nextQuestion () {
         if (questionId < questionsArr.length) {
             questionId++;
+            timer.reset ();
             $("#trivia-question").text(questionsArr[questionId]);
             $("#answer1").html(answersArr[questionId][0]);
             $("#answer2").html(answersArr[questionId][1]);
             $("#answer3").html(answersArr[questionId][2]);
             $("#answer4").html(answersArr[questionId][3]);
-            count = 16;
-            clock ();
-        }
-       else {
-           gameOver ();
-       }
-    }
-
-    //check if answer is correct
-    var checkAnswer = function () {
-        if (userAnswer == correctAns[questionId]) {
-            correctAns++;
-            nextQuestion();
+            $(document).on("click", ".btnanswer", function() {
+                var userAnswer = $(this).text().trim();
+                if (userAnswer == rightAns[questionId]) {
+                    correctAns++;
+                    nextQuestion();
+                }
+                else {
+                    wrongAns++;
+                    nextQuestion();
+                }});
         }
         else {
-            wrongAns++;
-            nextQuestion();
+            timer.stop ();
+            gameOver ();
         }
     }
 
@@ -78,6 +88,6 @@ $(document).ready(function() {
         $("#correct-answers").html("Correct answers: " + correctAns);
         $("#wrong-answers").html("Wrong answers: " + wrongAns);
         $("#skipped-questions").html("Skipped questions: " + skippedQuestions);
-        clearInterval(intervalId);
+        
     }
 });
